@@ -11,17 +11,14 @@ class ViewComponent { //nic nie robi, nie ma konstruktora
     }
 }
 
-class GameCell extends ViewComponent {
+class GameCell extends ViewComponent { //widok
     constructor(handleCellClick, row, column) {
         super();
         this._state = 'unknown'; // podkreslenie mowi ze zmienna jest prywatna - dobra praktyka
         this._element = document.createElement('td');
         const self = this;
         this._element.addEventListener('click', function() {
-            //self.setState('miss');
-            //self.handleCellClick(row, column);
             handleCellClick(row, column);
-
         });
     }
 
@@ -29,7 +26,6 @@ class GameCell extends ViewComponent {
         if (state !== 'unknown' && state !== 'miss' && state !== 'hit') {
             throw new Error('invalid state');
         }
-
         this._state = state;
         this._element.className = 'cell_' + state;
     };
@@ -37,7 +33,7 @@ class GameCell extends ViewComponent {
 
 }
 
-class GameBoard extends ViewComponent {
+class GameBoard extends ViewComponent { //widok
     constructor(handleCellClick) {
         const rowCount = 10;
         const columnCount = 10;
@@ -62,26 +58,57 @@ class GameBoard extends ViewComponent {
         this._cells[coordinateText].setState(state);
     }
 }
-class GameController {
-    constructor(boardView) {
-        this._boardView = boardView;
+class GameController { // kontroler
+    constructor(gameModel) {
+        this._gameModel = gameModel;
     }
     handleCellClick(row, column) {
-        this._boardView.setStateAt(row, column, 'miss');
+        this._gameModel.fireAt(row, column);
     }
 }
 
+// model, musi byc niezalezny
+class GameModel {
+    constructor() {
+        const rowCount = 10;
+        const columnCount = 10;
+        this._cells = {};
+        this._state = 'unknown';
 
+        for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            for (let cellIndex = 0; cellIndex < columnCount; cellIndex++) {
+                //const cell = new GameCell(handleCellClick, rowIndex, cellIndex);
+                //row.appendChild(cell.getElement());
+                const modelText = rowIndex + " / " + cellIndex;
+                this._cells[modelText] = { hasShip: true, firedAt: false };
+            }
+        }
+    }
+    fireAt(row, column) {
+        const modelText = row + " / " + column;
+        const targetCell = this._cells[modelText];
+        if (targetCell.fireAt) {
+            return;
+        }
+        targetCell.fireAt = true;
+        console.log("has ship " + targetCell.hasShip);
+
+    }
+}
+
+// app init
 const gameElement = document.getElementById('game');
 let board;
 let controller;
+//let model;
 
 function handleCellClick(row, column) {
     controller.handleCellClick(row, column);
 }
 
-//const board = new GameBoard();
 board = new GameBoard(handleCellClick);
-controller = new GameController(board);
+const model = new GameModel();
+controller = new GameController(model);
 gameElement.appendChild(board.getElement());
+
 board.setStateAt(5, 1, 'miss');
