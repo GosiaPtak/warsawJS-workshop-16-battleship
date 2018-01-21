@@ -74,13 +74,14 @@ class GameModel {
         const columnCount = 10;
         this._cells = {};
         this._state = 'unknown';
+        this._observers = [];
+
 
         for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
             for (let cellIndex = 0; cellIndex < columnCount; cellIndex++) {
-                //const cell = new GameCell(handleCellClick, rowIndex, cellIndex);
-                //row.appendChild(cell.getElement());
                 const modelText = rowIndex + " / " + cellIndex;
-                this._cells[modelText] = { hasShip: true, firedAt: false };
+                const hasShip = (Math.random() >= 0.8);
+                this._cells[modelText] = { hasShip: hasShip, firedAt: false };
             }
         }
     }
@@ -91,8 +92,15 @@ class GameModel {
             return;
         }
         targetCell.fireAt = true;
-        console.log("has ship " + targetCell.hasShip);
+        // console.log("has ship " + targetCell.hasShip);
+        const result = targetCell.hasShip ? 'hit' : 'miss';
+        this._observers.forEach(function(observer) {
+            observer('fireAt', { result, row, column });
+        })
 
+    }
+    addObserver(observerFunction) {
+        this._observers.push(observerFunction);
     }
 }
 
@@ -108,6 +116,13 @@ function handleCellClick(row, column) {
 
 board = new GameBoard(handleCellClick);
 const model = new GameModel();
+model.addObserver(function(eventType, param) {
+    switch (eventType) {
+        case 'fireAt':
+            board.setStateAt(param.row, param.column, param.result);
+            break;
+    }
+});
 controller = new GameController(model);
 gameElement.appendChild(board.getElement());
 
