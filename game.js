@@ -11,34 +11,16 @@ class ViewComponent { //nic nie robi, nie ma konstruktora
     }
 }
 
-class GameBoard extends ViewComponent {
-    constructor() {
-        const rowCount = 10;
-        const columnCount = 10;
-
-        super();
-        this._state = 'unknown';
-        this._element = document.createElement('table');
-
-        for (let i = 0; i < rowCount; i++) {
-            const row = document.createElement('tr');
-            for (let i = 0; i < columnCount; i++) {
-                const cell = new GameCell;
-                row.appendChild(cell.getElement());
-                //this._element = document.createElement('td');
-            }
-            this._element.appendChild(row);
-        }
-    }
-}
 class GameCell extends ViewComponent {
-    constructor() {
+    constructor(handleCellClick, row, column) {
         super();
         this._state = 'unknown'; // podkreslenie mowi ze zmienna jest prywatna - dobra praktyka
         this._element = document.createElement('td');
         const self = this;
         this._element.addEventListener('click', function() {
-            self.setState('miss');
+            //self.setState('miss');
+            //self.handleCellClick(row, column);
+            handleCellClick(row, column);
 
         });
     }
@@ -52,16 +34,54 @@ class GameCell extends ViewComponent {
         this._element.className = 'cell_' + state;
     };
 
+
 }
 
-const board = new GameBoard;
-document.getElementById('game').appendChild(board.getElement());
-//const main = document.getElementById('game');
-//main.appendChild(board.getElement());
+class GameBoard extends ViewComponent {
+    constructor(handleCellClick) {
+        const rowCount = 10;
+        const columnCount = 10;
+        super();
+        this._cells = {};
+        this._state = 'unknown';
+        this._element = document.createElement('table');
 
-//const main = document.getElementById('game').appendChild(board.getElement());
-//const gameElement = document.getElementById('game');
-//const
-//const row = document.createElement('tr');
-//gameElement.appendChild(row);
-//row.appendChild(cell1.getElement());
+        for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            const row = document.createElement('tr');
+            for (let cellIndex = 0; cellIndex < columnCount; cellIndex++) {
+                const cell = new GameCell(handleCellClick, rowIndex, cellIndex);
+                row.appendChild(cell.getElement());
+                const coordinateText = rowIndex + " - " + cellIndex;
+                this._cells[coordinateText] = cell;
+            }
+            this._element.appendChild(row);
+        }
+    }
+    setStateAt(row, column, state) {
+        const coordinateText = row + " - " + column;
+        this._cells[coordinateText].setState(state);
+    }
+}
+class GameController {
+    constructor(boardView) {
+        this._boardView = boardView;
+    }
+    handleCellClick(row, column) {
+        this._boardView.setStateAt(row, column, 'miss');
+    }
+}
+
+
+const gameElement = document.getElementById('game');
+let board;
+let controller;
+
+function handleCellClick(row, column) {
+    controller.handleCellClick(row, column);
+}
+
+//const board = new GameBoard();
+board = new GameBoard(handleCellClick);
+controller = new GameController(board);
+gameElement.appendChild(board.getElement());
+board.setStateAt(5, 1, 'miss');
