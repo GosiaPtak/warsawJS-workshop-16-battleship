@@ -103,11 +103,17 @@ class GameModel {
         this._observers.push(observerFunction);
     }
 }
+class ScoreCounter {
+    constructor() {
+        this._element = document.createElement('p');
+    }
+}
 
 // app init
 const gameElement = document.getElementById('game');
 let board;
 let controller;
+let counter;
 //let model;
 
 function handleCellClick(row, column) {
